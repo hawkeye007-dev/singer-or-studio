@@ -37,7 +37,16 @@ For f2 and g1, replace jvs with f2 or g1 in the three stages. Render via .venv-t
 
 The rerun writes fresh outputs only. Compare them to the [claim map](CLAIMS.md) and saved result files. FFmpeg versions can change codec renders. EnCodec and HTDemucs had small run-to-run differences in the documented source replay. Preserve the stored result snapshot and report meaningful drift.
 
-## Regenerate figures and the reading copy
+## Build the revised Acta Acustica draft
+
+Compile the self-contained LaTeX source with Tectonic or run `pdflatex` twice from the manuscript directory.
+
+```sh
+cd manuscript/acta-acustica
+tectonic singer_or_studio_revised.tex
+```
+
+## Regenerate the earlier reading copy
 
 Install Matplotlib, Markdown, Pillow, ReportLab and system DejaVu fonts if regeneration is useful. The PDF build retains line numbering.
 

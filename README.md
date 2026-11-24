@@ -1,12 +1,14 @@
 # Singer or Studio?
 
-This repository gives coauthors the experimental record for the paper on production mismatch in singer retrieval. The central comparison holds the query and genuine candidate fixed and changes only the impostor's processing. With a dry JVS-MuSiC query and a synthetic-reverberant genuine candidate, CVSM-ART ranking error fell from **46.24% to 17.52%** when the impostor received the same processing recipe. The paired reduction was **28.72 percentage points**. This is a controlled ranking result for a named encoder, cohort and treatment.
+This repository contains the manuscript and experimental record for a controlled benchmark of production mismatch in singer retrieval. Each trial compares one same-singer candidate with one different-singer candidate. On JVS-MuSiC, with a dry query and a synthetically reverberated same-singer candidate held fixed, applying the same reverb recipe to the different-singer candidate reduced CVSM-ART ranking error from **46.24% to 17.52%**. The paired reduction was **28.72 percentage points** (95% interval **22.76–35.17**). The measured-room-filter follow-up is reported separately.
 
 ## Start here
 
-1. Read the [claim-to-evidence map](docs/CLAIMS.md) for the paper's scope, strongest results and limits.
-2. Read the [journal draft PDF](manuscript/Singer%20or%20Studio%20-%20When%20Production%20Changes%20the%20Match.pdf), [editable draft](manuscript/when_production_changes_the_match.md) and [technical supplement](evidence/supplement.md). The [professor copy](manuscript/Singer%20or%20Studio%20-%20The%20Thesis.pdf) explains the experiments in more detail. The journal draft and this repository use the corrected shared-condition confidence intervals.
-3. Follow [reproduction](docs/REPRODUCTION.md) to verify the scores first, then [dataset and model setup](docs/DATA-AND-MODELS.md) for a waveform-to-score rerun.
+1. Read the [revised Acta Acustica draft PDF](manuscript/acta-acustica/singer_or_studio_revised.pdf) or edit the [LaTeX source](manuscript/acta-acustica/singer_or_studio_revised.tex).
+2. Use the [technical supplement](evidence/supplement.md) and [claim-to-evidence map](docs/CLAIMS.md) to trace the reported results to the saved evidence.
+3. Follow the [reproduction guide](docs/REPRODUCTION.md) to check saved results, then see [dataset and model setup](docs/DATA-AND-MODELS.md) for a waveform-to-score rerun.
+
+The [earlier reading copy](manuscript/Singer%20or%20Studio%20-%20When%20Production%20Changes%20the%20Match.pdf) and [professor copy](manuscript/Singer%20or%20Studio%20-%20The%20Thesis.pdf) remain available for background.
 
 ```sh
 python -m pip install -r requirements-audit.txt

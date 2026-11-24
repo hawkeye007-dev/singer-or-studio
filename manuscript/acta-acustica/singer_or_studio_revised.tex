@@ -1,0 +1,342 @@
+% Revised coauthor draft for Acta Acustica (Scientific Article).
+% Build with pdflatex twice or with tectonic. No external figures are required.
+% The author team should confirm the corresponding contact and declarations.
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=20mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{booktabs,tabularx}
+\usepackage[pagewise,mathlines]{lineno}
+\usepackage{flushend}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parskip}{0.15\baselineskip}
+\setlength{\emergencystretch}{1em}
+\setlength{\columnsep}{7.5mm}
+\setlength{\textfloatsep}{12pt plus 3pt minus 2pt}
+\setlength{\dbltextfloatsep}{12pt plus 3pt minus 2pt}
+\renewcommand{\dbltopfraction}{0.86}
+\renewcommand{\textfraction}{0.10}
+\raggedbottom
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+  {-2.7ex \@plus -.7ex \@minus -.2ex}{1.05ex \@plus .2ex}%
+  {\normalfont\large\sffamily\bfseries}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+  {-2.25ex \@plus -.55ex \@minus -.2ex}{.75ex \@plus .15ex}%
+  {\normalfont\normalsize\sffamily\bfseries}}
+\makeatother
+\newcommand{\evidencebase}{https://github.com/hawkeye007-dev/singer-or-studio/blob/2ea186d03cb15b8dee027aee72ddae81a2c91856}
+\newcommand{\evidencelink}[2]{\href{\evidencebase/#1}{#2}}
+\newcommand{\pp}{\,\mathrm{pp}}
+\newcommand{\db}{\,\mathrm{dB}}
+\newcommand{\kbs}{\,\mathrm{kb/s}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\hypersetup{pdftitle={Singer or Studio? When Production Changes the Match},
+  pdfauthor={Venkata Sathvik Chittipaka et al.}}
+
+\begin{document}
+\pagestyle{plain}
+\twocolumn[{%
+\begin{flushleft}
+{\LARGE\sffamily\bfseries Singer or Studio? When Production Changes the Match\par}
+\vspace{0.8em}
+Venkata Sathvik Chittipaka\textsuperscript{1}, Ruthvik Marri\textsuperscript{1},
+Umanth Reddy Boddu\textsuperscript{1}, Shivani Kona\textsuperscript{1},
+Desu Nayanika Sri Sai Jhansi\textsuperscript{1}, and PVN Balarama Murthy\textsuperscript{2}
+
+{\small
+\textsuperscript{1}Department of Computer Science and Engineering, Keshav Memorial Engineering College, Hyderabad, India\par
+\textsuperscript{2}Department of Computer Science and Engineering, Neil Gogte Institute of Technology, Hyderabad, India\par}
+{\small\textbf{Correspondence.} [Author team to confirm name and email.]}
+\end{flushleft}
+
+\begin{minipage}{\textwidth}
+\small\noindent\textbf{Abstract}\par\smallskip
+\noindent\textbf{Introduction.} Singer retrieval can fail when recordings have different production effects. We test whether processing a wrong-singer candidate can change the ranking while the query and correct-singer recording stay fixed.\par
+\noindent\textbf{Methods.} Each trial compares one same-singer candidate with one different-singer candidate. On JVS-MuSiC (100 singers), we vary synthetic reverberation independently across the query and both candidates. We compare five frozen encoders under 19 settings on VocalSet and GTSinger and test exact sharing of measured room filters on CoVox and NUS-48E.\par
+\noindent\textbf{Results.} With dry common-song queries, reverberating only the correct-singer candidate raised CVSM-ART pairwise error from 14.73\% to 46.24\%. Reverberating the wrong-singer candidate as well reduced error to 17.52\%, a 28.72 percentage point reduction (95\% interval 22.76--35.17) with the correct-singer score fixed. Relative penalties varied by encoder on GTSinger. At 20\% wet, measured-filter sharing increased Torres SSL error by 2.29 points on CoVox and 4.44 on NUS-48E. Both estimates fell below the study's 5-point criterion, though the NUS-48E interval extended above it.\par
+\noindent\textbf{Discussion.} Testing production separately by trial role reveals ranking errors that uniform processing can hide. The measured-filter comparison bounds the result under the tested conditions.
+\par\smallskip
+\noindent\textbf{Keywords.} Singing voice, singer retrieval, acoustic mismatch, reverberation, audio coding, source separation
+\end{minipage}
+\vspace{1.2em}
+}]
+\linenumbers
+
+\section{Introduction}
+A dry vocal query may be used to find another performance by the same singer in an archive of compressed, reverberant or separated recordings. A relevant match can then score below a different singer whose recording is more similar in production. Evaluating only recordings that share a processing condition can hide this failure. A controlled comparison needs to retain the same performances and vary processing separately for the query, the genuine candidate and the impostors.
+
+Accompaniment is a known confound in singer identification. Sharma et al.\ examined vocal extraction for identification in polyphonic music \cite{sharma}. Hsieh et al.\ studied the effect of accompaniments on closed-set identification by separating and remixing training material \cite{hsieh}. Recognition in degraded archival music has also motivated quality-dependent model selection \cite{balakrishnan}. Singing-specific representations have been learned from vocal data using self-supervision \cite{torres,yakura} and contrastive matching of vocals and music mixtures \cite{cvsm}. Singer verification is sensitive to changes in vocal technique \cite{toma}. Here the underlying performance is fixed, and the experimental intervention is applied to its recording.
+
+Prior work has measured sensitivity to common effects in general audio embeddings \cite{deng}, evaluated codecs on downstream tasks including singer identification \cite{codecbench}, and studied acoustic mismatch in spoken-speaker verification \cite{ferras,sveritas}. We isolate a different comparison in singing: whether changing the processing of the wrong-singer candidate changes the rank while the same-singer comparison stays fixed. We use a factorial design to vary the three roles separately. A cross-cohort sweep measures sensitivity across transformations and strengths. Measured room responses bound the claim under defined acoustic conditions, and a same-track test probes separation on recorded mixtures.
+
+\section{Materials and methods}
+\subsection{Corpora and trial construction}
+Table~\ref{tab:corpora} summarizes the material. A trial consists of a query, a second recording of the same singer (genuine candidate), and a recording of another singer (impostor). We keep trial membership and crop offsets fixed across treatment assignments, embed all three clips with the same frozen encoder, and compare the query's cosine similarity to each candidate. In the core sweep, VocalSet \cite{vocalset} supplies straight-technique performances of three songs. One of the intended 60 singer--song entries is missing. GTSinger \cite{gtsinger} supplies four natural singing recordings per singer across eight represented languages. In both corpora, an impostor matches the query singer's corpus-derived sex label and occupies the genuine candidate's song or recording slot. GTSinger slots align trial construction without requiring identical songs across singers. The four-second offset maximizes mean-square amplitude over a half-second grid in the source and is reused across renders. VocalSet gives 116 ordered genuine pairs and 1,032 triplets per condition. GTSinger gives 228 pairs and 1,944 triplets. The trial lists are identical across the five core encoders and all conditions.
+
+\begin{table}[htbp]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Evaluation cohorts. Source counts are recordings before processing. For MUSDB18 the source count is retained tracks, with multiple windows per track.}
+\label{tab:corpora}
+\begin{tabularx}{\linewidth}{@{}lrrY@{}}
+\toprule
+Corpus & Units & Sources & Comparison \\
+\midrule
+VocalSet & 20 singers & 59 & Production sweep and measured responses \\
+GTSinger & 19 singers & 76 & Fixed-setting transfer and measured responses \\
+JVS-MuSiC & 100 singers & 200 & Factorial and swap of query song \\
+CoVox & 22 singers & 44 & Exact filter sharing and mixed galleries \\
+NUS-48E & 12 singers & 48 & Exact filter sharing and mixed galleries \\
+MUSDB18 & 147 tracks & 147 & Separation from recorded mixtures \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+For JVS-MuSiC \cite{jvs}, we use a centered four-second window of each singer's common and singer-specific songs. Impostors come from the same corpus voice-range group and song role as the genuine candidate. We first use the common song as the query, then reverse the roles. Each orientation contributes 100 genuine pairs and 1,568 triplets. We use two renditions with lyrics (AL and CH) per CoVox singer \cite{covox}, with centered windows and symmetric padding where needed. NUS-48E \cite{nus} supplies four recordings per singer at fixed high-energy offsets. Its galleries match the within-singer recording slot across identities, without matching across singers by sex or song title. CoVox and NUS singers were outside the shared-reverberation discovery analyses.
+
+\subsection{Production conditions}
+In the core sweep, we render mono source audio at 44.1 kHz, crop at the fixed source offset and normalize peak magnitude to 0.5. Clean denotes the corpus recording with this common preprocessing. Table~\ref{tab:conditions} lists the 19 additional settings. Reverberation is generated as
+\begin{equation}
+ \begin{aligned}
+ z(t)&=(h*x)(t),\quad\text{truncated to the duration of }x,\\
+ y(t)&=(1-w)x(t)+w\frac{\sigma(x)}{\sigma(z)+\epsilon}z(t).
+ \end{aligned}
+ \label{eq:render}
+\end{equation}
+where $x$ is the source, $h$ is the impulse response, $*$ denotes convolution, $z$ is truncated to the source duration, $w$ is the wet coefficient, $\sigma$ is the signal standard deviation and $\epsilon=10^{-9}$. Before mixing, the convolution term is scaled to approximately the dry signal's standard deviation. The weighted dry-to-convolution ratios are nominally about 12 and 0 dB for $w=0.20$ and $0.50$, respectively. These ratios are defined on the render components. A physical direct-to-reverberant ratio would require separating direct arrivals and reflections.
+
+The synthetic response uses seeded Gaussian noise under an exponential envelope calibrated to a 60 dB decay in one second, truncated at 1.2 s and energy normalized. The core sweep uses a fixed response with seed 0. JVS-MuSiC uses 24 kHz source audio, $w=0.20$, and a fixed seed per recording. A JVS processing match means the same recipe and wet coefficient with separately seeded filter realizations for each recording. Its MP3 comparison uses mono coding at $64\kbs$. In each JVS arm we process the full recording, trim or pad decoded MP3 to the original duration, center-crop and peak-normalize. The seed rule and render order are given in Supplement S1.
+
+\begin{table}[htbp]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Core sweep. Levels for mix and separation express the vocal-to-accompaniment ratio.}
+\label{tab:conditions}
+\begin{tabularx}{\linewidth}{@{}p{0.25\linewidth}>{\raggedright\arraybackslash}p{0.33\linewidth}Y@{}}
+\toprule
+Treatment & Settings & Operation \\
+\midrule
+Reverb & $w=0.10,0.20,$ $0.30,0.50$ & Convolution and mixing per Eq.~\eqref{eq:render} \\
+EnCodec & $1.5,3,6,12,24\kbs$ & 24 kHz mono neural codec \cite{encodec} \\
+MP3 & $32,64,128\kbs$ & FFmpeg with libmp3lame \\
+Equalization & $3,6,12\db$ & For each $g$, apply $+g$ at the 200 Hz low shelf and $-g$ at the 4 kHz high shelf \\
+Separation & $-6,0,+6,+12\db$ & Add accompaniment, then recover vocals with HTDemucs \cite{demucs} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Measured responses come from the MIT survey \cite{traer}. We downmix to mono, align at the maximum absolute sample and energy normalize. For the initial sweep, eight responses span the observed decay range by quantile selection. To compare exact filter sharing while approximately matching broadband decay, a separate set includes four pairs of distinct indoor responses near 0.30, 0.45, 0.60 and 0.80 s estimated $T_{30}$. We estimate broadband $T_{30}$ from the slope of the Schroeder energy decay curve between $-5$ and $-35$ dB and extrapolate to 60 dB. Actual within-pair differences range from approximately 0.009 to 0.029 s. The primary setting uses $w=0.20$, with $w=0.50$ as a stress test. Each trial uses the two response files within one pair. An exact match applies the same filter to separate performances. Convolution with measured responses gives a controlled comparison of rendered signals.
+
+\subsection{Encoders and outcomes}
+The core encoders are CVSM-ART and CVSM-A \cite{cvsm}, the contrastive voice-conversion checkpoint of Torres et al.\ \cite{torres} (Torres SSL), ECAPA-TDNN \cite{ecapa} with the SpeechBrain VoxCeleb checkpoint, and MERT-v1-95M \cite{mert}. The two CVSM checkpoints use artist-informed and label-agnostic training and were released with HTDemucs and Open-Unmix Music4All preprocessing, respectively. CVSM resamples to 16 kHz, forms a 64-band log-Mel representation for each normalized one-second window and averages embeddings over the four windows. Torres SSL uses peak-normalized audio at 44.1 kHz. ECAPA-TDNN takes 16 kHz audio. MERT uses normalized 24 kHz audio and averages over time and thirteen hidden-state tensors. We use released weights and exclude crops containing a completely silent one-second quarter. All core crops remained eligible.
+
+Let $q$, $p$ and $n$ be the query, genuine and impostor recordings, respectively. For a fixed encoder, let $s(a,b)$ be the cosine similarity between the embeddings of recordings $a$ and $b$. The margin and the pairwise ranking error indicator are
+\begin{equation}
+ \begin{aligned}
+ m(q,p,n)&=s(q,p)-s(q,n),\\
+ e(q,p,n)&=\mathbf{1}\{m(q,p,n)\leq 0\}.
+ \end{aligned}
+ \label{eq:margin}
+\end{equation}
+We count ties as errors and average first within the query singer, then equally across singers. In the gallery analysis, a top-rank error occurs when any eligible impostor ties or exceeds the genuine score. The archived JVS results include descriptive equal error rates for the original query orientation. Equal error rate uses a threshold on genuine and impostor scores and addresses a different decision from the pairwise ranking measure.
+
+\subsection{Contrasts and uncertainty}
+In the core trials the query stays clean. We compare all-clean trials with genuine-only processing and with processing on both candidates. VocalSet screens for an increase of at least 10 percentage points (pp) with a lower 95\% bound above zero. The union of settings selected for CVSM-ART and Torres SSL gives 17 settings for the common comparison across encoders. GTSinger uses that fixed list: all four synthetic reverb settings, all five EnCodec rates, all three MP3 rates, the 12 dB shelf pair and all four separation ratios. \evidencelink{evidence/supplement.md\#s2-core-benchmark-condition-tables}{Supplement S2} lists the per-encoder selections and gives both cohorts' estimates and intervals for every setting. Intervals use 2,000 paired query-singer bootstrap draws with a fixed gallery. For the common means we use lexicographic singer order and NumPy PCG64 seed 0. The screening is descriptive, with unadjusted intervals.
+
+In JVS trials, binary digits index the query, genuine and impostor processing in that order. Thus $010$ processes the genuine alone, $011$ both candidates, $100$ the query alone and $111$ all recordings. We estimate the direction contrast $010-100$ and the impostor intervention $010-011$. A symmetric matching effect averages the matching-minus-mismatching impostor comparisons $000-001$, $010-011$, $101-100$ and $111-110$. Each difference holds the query and genuine conditions fixed. Equal weighting cancels a constant impostor treatment effect in the mean cosine contrast. We estimate genuine and impostor scores separately. The score contrasts do not identify which representation features respond to treatment.
+
+For measured responses we compare the matching and alternate impostor filters with the query and genuine fixed. We weight the two query assignments, two genuine assignments and four response pairs equally. Each cell contains 924 CoVox and 1,584 NUS-48E triplets. The four selected pairs are treated as fixed. Supplement S3 gives the eight response file identifiers, decay estimates, pair-level results and leave-one-pair-out estimates.
+
+JVS and measured-response pairwise intervals use 5,000 coupled bootstrap draws (NumPy PCG64, seed 20261119). We resample within the eligibility groups, using the six voice-range groups for JVS and a single pool within each of CoVox and NUS-48E. A singer's multiplicity weights that singer's contributions as both query and impostor. Within each resampled query singer, the denominator is the number of eligible triplets after weighting impostors. We reject draws leaving a sampled query without an eligible impostor. Percentile intervals use the same draws across contrasting cells. The implementation and grouping manifest accompany the trial scores.
+
+Before scoring the room data, we defined a four-part internal rule for pursuing a stand-alone effect at 20\% wet with Torres SSL. It required on both cohorts a point estimate above 5 pp, a lower 95\% bound above 2 pp, positive shifts in at least three of four pairs, and more wins by matching than alternate impostors in mixed galleries. In mixed galleries, each query--genuine pair uses 16 nearly balanced impostor assignments and their complements. The winning-impostor excess is the difference in the fractions of \emph{all} gallery trials won by matching and alternate impostors. A separate post-hoc contrast measures the total top-rank error change when switching from all-alternate impostors to a mixed gallery, holding recordings fixed. Its intervals resample query singers while holding the galleries fixed.
+
+\subsection{Recorded mixtures and auxiliary checks}
+For MUSDB18 \cite{musdb}, we start from all 150 tracks and select the three highest-RMS nonoverlapping four-second windows within each centered 60 s mixture excerpt, using HTDemucs vocal estimates on a four-second grid. We use the same windows for the reference stems. Seven crop locations fail the silent-quarter rule, and three tracks lack a valid ordered query and genuine pair. The five encoders use the same 147 tracks (100 training, 47 test in MUSDB18). The query is a reference stem and the genuine is another window of the same track, evaluated as stem and as separated vocal at the same offset. Impostors have a different credited artist label and occupy the corresponding window slot. We average and resample by track. The released separator used MUSDB18-HQ training material, so the corpus splits and overlap are relevant to interpretation.
+
+Supplement S6 reports mitigation pilots and a Music4All \cite{music4all} artist-level check including a local implementation of Yakura et al.\ \cite{yakura}. Music4All is a known CVSM training domain. Overlap of individual evaluation tracks is unverified. Those data contain precompressed mixtures with artist rather than singer labels.
+
+\section{Results}
+\subsection{Processing roles in JVS-MuSiC}
+
+
+Table~\ref{tab:jvs-cells} reports all eight synthetic reverb assignments for the headline comparison. Table~\ref{tab:jvs} compares encoders and both query song orientations. For CVSM-ART with a dry common-song query, reverberating only the genuine candidate increases ranking error from 14.73\% to 46.24\%. Processing the query alone gives 14.15\%. The direction gap is 32.09 pp [25.45, 39.10] and remains 28.93 pp [22.47, 35.78] after swapping the song roles. The gap remains positive after the swap for CVSM-A and Torres SSL as well. This contrast reflects the whole ranking context because changing the query also changes its comparison with the impostor.
+
+\begin{table}[htbp]
+\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{CVSM-ART on JVS-MuSiC with the common song as query. The three digits indicate synthetic reverberation (1) or dry audio (0) for the query, genuine candidate and impostor, in that order. Cosines and errors are averaged across query singers.}
+\label{tab:jvs-cells}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Assignment & Error (\%) & Genuine cosine & Impostor cosine \\
+\midrule
+000 & 14.73 & 0.931149 & 0.883459 \\
+001 & 3.92 & 0.931149 & 0.840697 \\
+\textbf{010} & 46.24 & 0.888241 & 0.883459 \\
+\textbf{011} & 17.52 & 0.888241 & 0.840697 \\
+100 & 14.15 & 0.895950 & 0.846784 \\
+101 & 28.50 & 0.895950 & 0.866541 \\
+110 & 6.94 & 0.926267 & 0.846784 \\
+111 & 11.25 & 0.926267 & 0.866541 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table*}[t]
+\centering\small
+\caption{JVS-MuSiC error (\%) for 20\% synthetic reverberation. Both refers to the two candidates with the query clean. All includes the query. The last column is the genuine-only minus query-only change in percentage points with a 95\% paired interval.}
+\label{tab:jvs}
+\begin{tabularx}{\linewidth}{@{}lYrrrrrl@{}}
+\toprule
+Encoder & Query song & Clean & Genuine & Query & Both & All & Direction gap \\
+\midrule
+CVSM-ART & Common & 14.7 & 46.2 & 14.1 & 17.5 & 11.3 & 32.09 [25.45, 39.10] \\
+CVSM-ART & Singer-specific & 12.6 & 42.2 & 13.2 & 13.0 & 10.0 & 28.93 [22.47, 35.78] \\
+CVSM-A & Common & 14.9 & 47.9 & 12.6 & 16.7 & 13.7 & 35.28 [29.10, 41.63] \\
+CVSM-A & Singer-specific & 14.2 & 37.5 & 13.5 & 12.3 & 11.0 & 23.96 [18.16, 30.42] \\
+Torres SSL & Common & 18.5 & 98.9 & 31.7 & 36.3 & 19.9 & 67.14 [62.28, 71.87] \\
+Torres SSL & Singer-specific & 18.6 & 99.5 & 28.3 & 37.7 & 18.1 & 71.25 [66.31, 76.06] \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+With the same dry query and reverberant genuine candidate, reverberating only the impostor reduces CVSM-ART ranking error from 46.24\% to 17.52\%, a paired reduction of 28.72 pp [22.76, 35.17]. The mean genuine cosine stays at 0.888241. The mean impostor cosine drops from 0.883459 to 0.840697. Ranking error is computed on individual margins before averaging.
+
+For common-song queries, the mean of the four matching contrasts is 14.55 pp [11.88, 17.49] for CVSM-ART, 12.64 pp [10.62, 14.89] for CVSM-A and 41.11 pp [38.66, 43.45] for Torres SSL. After swapping the song roles the estimates are 15.84, 12.25 and 41.37 pp, respectively. The common-song median clean cosine margin is 0.0443 for CVSM-ART and 0.0511 for Torres SSL. The mean symmetric impostor similarity shift is +0.0313 and +0.4653, respectively.
+
+With MP3 at $64\kbs$, common-song genuine-only increases are 7.3, 1.5 and 9.5 pp for CVSM-ART, CVSM-A and Torres SSL. The CVSM-A interval includes zero. Supplement S1 provides the eight cells, weights and counts. The archived factorial output gives the paired intervals for all contrasts.
+
+\subsection{Controlled sweep and transfer to GTSinger}
+Table~\ref{tab:core} compares the same 17 settings across encoders. On GTSinger, the paired excess increase over ECAPA-TDNN is 26.8 pp [23.6, 29.9] for CVSM-ART, 13.1 [10.4, 15.8] for CVSM-A and 40.1 [32.9, 47.7] for Torres SSL. Each increase uses that encoder's own clean baseline. The same model ordering holds when all 19 GTSinger settings receive equal weight. The descriptive increases in table order are 28.0, 15.7, 39.9, 4.0 and 4.7 pp. This sensitivity check includes the two lower EQ gains omitted from the 17-setting list.
+
+\begin{table*}[t]
+\centering\small
+\caption{Shared 17-setting comparison. Clean errors are in percent. Shift is the mean genuine-only increase over clean, in percentage points with a paired 95\% interval. The settings were selected on VocalSet and evaluated unchanged on GTSinger.}
+\label{tab:core}
+\begin{tabularx}{\linewidth}{@{}Yrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{VocalSet} & \multicolumn{2}{c}{GTSinger} \\
+\cmidrule(lr){2-3}\cmidrule(l){4-5}
+Encoder & Clean & Shift & Clean & Shift \\
+\midrule
+CVSM-ART & 8.1 & 47.8 [43.4, 52.4] & 8.9 & 31.2 [27.7, 34.7] \\
+CVSM-A & 10.6 & 32.2 [28.4, 35.5] & 7.0 & 17.5 [15.0, 20.3] \\
+Torres SSL & 9.5 & 70.8 [65.8, 75.6] & 7.8 & 44.5 [36.8, 53.0] \\
+ECAPA-TDNN & 16.6 & 7.0 [4.9, 8.8] & 6.4 & 4.4 [2.8, 6.5] \\
+MERT & 15.1 & 10.8 [8.6, 13.0] & 15.3 & 5.2 [3.6, 7.0] \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+For CVSM-ART on GTSinger, increasing the synthetic wet coefficient from 0.10 to 0.50 changes the genuine-only penalty from 2.1 to 58.9 pp. Reducing the EnCodec rate from 24 to 1.5 kb/s increases the penalty from 8.5 to 42.9 pp. The MP3 penalty is 54.1 pp at 32 kb/s and 1.0 pp at 128 kb/s. On VocalSet, Torres SSL error rises by 21.1 pp with 128 kb/s MP3. Forward--backward eighth-order Butterworth low-pass filtering of clean crops raises it by 7.8 pp at 16 kHz and 9.3 pp at 11 kHz. The tested bandwidth changes account for only part of the observed MP3 penalty. The two lowest equalization levels produced small changes across the three singer encoders in both cohorts. Full condition-level results appear in Supplement S2.
+
+For the 14 settings selected on VocalSet specifically for CVSM-ART, clean error is 8.1\%, genuine-only error 65.2\% and both-candidate error 18.2\%. The query stays dry throughout. The both-candidate control substantially reduces the penalty and leaves a 10.1 pp residual relative to clean.
+
+Three replay checks provide different levels of verification. The six replay conditions were clean, synthetic reverb at $w=0.30$, EnCodec at $6\kbs$, MP3 at $64\kbs$, separation at $0\db$, and a $+12/-12\db$ shelf pair. Waveform regeneration and inference on VocalSet reproduced errors within one point. Clean, synthetic reverberation, MP3 and equalized outputs were bit-identical in that replay. EnCodec and separation outputs varied between runs. Fresh model inference on selected existing crops from both cohorts and full rescoring from archived embeddings matched the corresponding references at recorded precision. A gain and RMS-matching check showed no change at recorded precision under the tested settings. Supplement S5 documents the replay scope.
+
+\subsection{Measured responses and mixed galleries}
+In the initial measured-response sweep, processing the genuine candidate increases mean error across responses and wet levels by 42.7 pp on VocalSet and 27.4 pp on GTSinger for Torres SSL. The corresponding changes are 5.2 and 4.6 pp for CVSM-ART, and 7.7 and 6.7 pp for CVSM-A. Longer-decay responses tend to yield larger Torres SSL penalties across these selected filters. Filter properties co-vary, so this association is descriptive.
+
+In the separate CoVox and NUS-48E comparison, sharing the exact query filter increases Torres SSL pairwise error by 2.29 pp [1.45, 3.27] and 4.44 pp [2.54, 7.01], respectively, at 20\% wet (Table~\ref{tab:room}). Both point estimates miss 5 pp. The CoVox interval excludes 5 pp for these filters, while the NUS-48E interval includes increases above it. The lower-bound requirement passes on NUS-48E alone. Three of four pairs are positive on CoVox and four of four on NUS-48E, so both pass the consistency requirement. Matching impostors win 10.21 and 18.54 pp more trials than alternate impostors in the two mixed galleries, passing the direction requirement in both. The joint rule is unmet. CVSM-ART's shifts are no larger than 0.20 pp at this wet level. At 50\% wet, the Torres SSL pairwise shifts reach 22.40 and 14.39 pp.
+
+\begin{table*}[t]
+\centering\small
+\caption{Exact measured-filter sharing. Pairwise changes compare matching and alternate impostor responses. Secondary top-rank changes compare mixed and fully nonmatching impostor galleries. Entries give increases in percentage points with 95\% intervals.}
+\label{tab:room}
+\begin{tabularx}{\linewidth}{@{}lYrrr@{}}
+\toprule
+Corpus & Encoder & Wet (\%) & Pairwise change & Secondary top-rank change \\
+\midrule
+CoVox & Torres SSL & 20 & 2.29 [1.45, 3.27] & 2.81 [0.78, 4.90] \\
+CoVox & Torres SSL & 50 & 22.40 [18.86, 25.90] & 20.97 [18.29, 23.73] \\
+CoVox & CVSM-ART & 20 & 0.20 [$-0.03$, 0.52] & 0.99 [0.40, 1.69] \\
+CoVox & CVSM-ART & 50 & 2.91 [1.60, 4.50] & 6.69 [4.91, 8.35] \\
+NUS-48E & Torres SSL & 20 & 4.44 [2.54, 7.01] & 9.01 [7.48, 10.62] \\
+NUS-48E & Torres SSL & 50 & 14.39 [10.70, 19.54] & 22.65 [20.71, 24.76] \\
+NUS-48E & CVSM-ART & 20 & 0.16 [0.01, 0.44] & 0.39 [0.09, 0.74] \\
+NUS-48E & CVSM-ART & 50 & 1.55 [0.67, 2.70] & 4.25 [2.93, 5.65] \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+The post-hoc top-rank contrast measures a change in total error, separate from which impostor wins. At 20\% wet, switching to a mixed gallery increases Torres SSL top-rank error by 2.81 pp on CoVox and 9.01 pp on NUS-48E. At 50\% wet, it rises from 54.0\% to 75.0\% and from 39.2\% to 61.9\%, respectively. These estimates follow the selected gallery sizes, assignments and filters. Supplement S3 gives the absolute gallery rates and the accompanying score shifts.
+
+\subsection{Separation from recorded mixtures}
+With five additional backing tracks in synthetic mix and separation, the mean increase is 55.9 pp on VocalSet and 46.5 pp on GTSinger for CVSM-ART. The corresponding pairs are 42.9 and 18.3 for Torres SSL, and 6.3 and 4.3 for CVSM-A. In MUSDB18, CVSM-ART has the largest paired shift at 16.8 pp [14.2, 19.8]. Its same-track error is 1.1\% for reference stems, 18.0\% when only the genuine candidate is separated and 4.6\% when both candidates are separated (Table~\ref{tab:musdb}).
+
+\begin{table}[htbp]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{MUSDB18 same-track ranking errors (\%) on 147 tracks. The query always uses a reference stem. Shift gives the paired genuine-only increase in percentage points with a 95\% interval, calculated before rounding.}
+\label{tab:musdb}
+\begin{tabularx}{\linewidth}{@{}Yrrrr@{}}
+\toprule
+Encoder & Stems & Genuine & Both & Shift \\
+\midrule
+CVSM-ART & 1.1 & 18.0 & 4.6 & 16.8 [14.2, 19.8] \\
+CVSM-A & 1.8 & 2.7 & 2.1 & 0.9 [0.6, 1.3] \\
+Torres SSL & 1.1 & 3.7 & 3.3 & 2.6 [1.7, 3.7] \\
+ECAPA-TDNN & 3.3 & 4.0 & 4.3 & 0.7 [0.3, 1.1] \\
+MERT & 6.9 & 7.9 & 7.8 & 1.0 [0.5, 1.4] \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Discussion}
+The JVS intervention locates an effect in the competing score. For the same query and genuine waveform, changing only the impostor render changes the cosine margin and the error. The direction asymmetry also survives swapping which song supplies the query. Equal error rates and production-matched rankings address different questions from this intervention. The results establish a contribution from relative processing, while the amount of identity information recoverable after processing remains unknown. The relevant features may differ by encoder.
+
+The measured-response experiments qualify the synthetic findings. The initial sweep changes the genuine recording and shows larger and more consistent effects for Torres SSL than for either CVSM checkpoint. The separate matched-response experiment changes the impostor filter at similar broadband decay and finds a modest primary effect. Its stronger condition shows that a matching impostor may become especially competitive in a mixed gallery. Comparisons of simulated and measured-response auralisations with a physical reference \cite{starz} and explicit reference choices in musical acoustics benchmarks \cite{ernoult} illustrate why those conditions should be specified. Here the reference is a controlled render of an existing recording. Applying identical filters to separate performances represents a more specific case than separate recordings made in the same room, where source and microphone positions may vary. Our analysis has no measured direct-to-reverberant ratio or octave-band decay estimates for the rendered clips.
+
+The separation comparison shows that the selected pipeline has its largest measured effect on CVSM-ART. The checkpoints differ in training targets, their exposure to separation pipelines and inference rules. Their comparison leaves the individual contribution of these choices unresolved. The MUSDB18 endpoint shares track and recording properties across the genuine pair, and the track sample overlaps the separator's training domain. It therefore addresses sensitivity on these mixtures. The exploratory mitigation and artist-level comparisons are reported in Supplement S6.
+
+The two core cohorts have limited singer counts, and the common condition set was selected on VocalSet. JVS-MuSiC broadens singer coverage but has only two recordings per singer and three tested encoders. The role swap reuses those recordings. CoVox is female-only and NUS offers a small gallery with no stratification by sex or song. The uncertainty intervals condition on the tested recordings, candidate rules and response sets as applicable. Pretraining overlap with some evaluation material is unresolved. All outcomes are computed from recorded labels and model scores. Claims about perceptual identity or deployment-specific thresholds would require corresponding experiments.
+
+\section{Conclusion}
+Switching only the impostor's production can change singer rankings while the genuine score stays fixed. On JVS-MuSiC, the genuine-only versus query-only reverb gap persists when the two songs swap roles. The fixed-setting GTSinger comparison shows substantial variation across encoders. For the four fixed measured-response pairs, both 20\%-wet point estimates miss the project's 5-point threshold and the NUS-48E interval remains compatible with larger effects. The stronger wet setting shows larger penalties for Torres SSL. These results support testing each trial role separately and reporting matched and mismatched controls at known processing settings.
+
+\section*{Data availability statement}
+Source recordings and measured responses are available under their providers' terms \cite{vocalset,gtsinger,jvs,covox,nus,traer,musdb,music4all}. The \href{https://github.com/hawkeye007-dev/singer-or-studio}{public evidence repository} includes a pinned \href{https://github.com/hawkeye007-dev/singer-or-studio/tree/2ea186d03cb15b8dee027aee72ddae81a2c91856}{snapshot (commit \texttt{2ea186d})} with pseudonymous trial scores, counts, crop manifests, checkpoint hashes and rendering and scoring code. \evidencelink{evidence/supplement.md}{Supplement S1--S6} gives the full tables and uncertainty. The \evidencelink{docs/REPRODUCTION.md}{reproduction guide} describes what each check reproduces and how to rerun from recordings.
+
+The \evidencelink{evidence/verify_results.py}{score audit} uses Python 3 to check saved JVS scores, point contrasts and pooled effects. The \evidencelink{evidence/verify_core_counts.py}{core audit} uses NumPy to check trial counts, rates and shared-setting intervals. These commands require no audio. The \evidencelink{archive/factorial/analyze.py}{factorial scorer} and \evidencelink{archive/room-followup/confirm.py}{room scorer} document the paired bootstrap, exclusions and gallery assignment. The snapshot includes their derived results. A full rerun requires the source audio, upstream checkpoints and software dependencies.
+
+\section*{Declarations}
+\noindent\textbf{Use of existing recordings.} The analyses reported here use existing audio corpora. They include no newly collected listener responses.\par
+\noindent\textbf{Funding.} [Author confirmation required.]\par
+\noindent\textbf{Competing interests.} [Author confirmation required.]\par
+\noindent\textbf{Author contributions.} [Complete with the author team.]\par
+\noindent\textbf{Use of AI assistance.} OpenAI Codex (GPT-6.2-Sol) assisted with drafting, LaTeX preparation and checks against saved results. The author team is responsible for verifying the final text, tables and conclusions.
+
+\begin{thebibliography}{99}
+\small\raggedright
+\bibitem{sharma} B. Sharma, R.K. Das, H. Li, On the importance of audio-source separation for singer identification in polyphonic music, in: Interspeech, 2019, pp. 2020--2024. \href{https://doi.org/10.21437/Interspeech.2019-1925}{doi:10.21437/Interspeech.2019-1925}.
+\bibitem{hsieh} T.-H. Hsieh, K.-H. Cheng, Z.-C. Fan, Y.-C. Yang, Y.-H. Yang, Addressing the confounds of accompaniments in singer identification, in: IEEE ICASSP, 2020. \href{https://doi.org/10.1109/ICASSP40776.2020.9054069}{doi:10.1109/ICASSP40776.2020.9054069}.
+\bibitem{balakrishnan} S. Balakrishnan, U. Thayasivam, Quality-aware adversarial ensemble for singer identification in 1960s Tamil film music, in: EACL Student Research Workshop, 2026, pp. 150--159. \href{https://doi.org/10.18653/v1/2026.eacl-srw.10}{doi:10.18653/v1/2026.eacl-srw.10}.
+\bibitem{torres} B. Torres, S. Lattner, G. Richard, Singer identity representation learning using self-supervised techniques, in: ISMIR, 2023, pp. 448--456. \href{https://doi.org/10.5281/zenodo.10265323}{doi:10.5281/zenodo.10265323}.
+\bibitem{yakura} H. Yakura, K. Watanabe, M. Goto, Self-supervised contrastive learning for singing voices, IEEE/ACM Trans. Audio Speech Lang. Process. 30 (2022) 1614--1623. \href{https://doi.org/10.1109/TASLP.2022.3169627}{doi:10.1109/TASLP.2022.3169627}.
+\bibitem{cvsm} C. Garoufis, A. Zlatintsi, P. Maragos, CVSM: Contrastive vocal similarity modeling, IEEE Trans. Audio Speech Lang. Process. 34 (2026) 2724--2737. \href{https://doi.org/10.1109/TASLPRO.2026.3677618}{doi:10.1109/TASLPRO.2026.3677618}.
+\bibitem{toma} S. Toma, T. Ariga, Y. Higuchi, I. Hayasaka, R. Shigyo, T. Ogawa, Exploring impact of prioritizing intra-singer acoustic variations on singer embedding extractor construction for singer verification, in: O-COCOSDA, 2024. \href{https://doi.org/10.1109/O-COCOSDA64382.2024.10800601}{doi:10.1109/O-COCOSDA64382.2024.10800601}.
+\bibitem{deng} V. Deng, C. Wang, G. Richard, B. McFee, Investigating the sensitivity of pre-trained audio embeddings to common effects, in: IEEE ICASSP, 2025. \href{https://doi.org/10.1109/ICASSP49660.2025.10888929}{doi:10.1109/ICASSP49660.2025.10888929}.
+\bibitem{codecbench} L. Wang, H. Chen, S. Wu, Z. Wu, H. Zhou, C. Zhang, T. Wang, H. Zhang, AudioCodecBench: A comprehensive benchmark for audio codec evaluation, 2025. \href{https://arxiv.org/abs/2509.02349}{arXiv:2509.02349}.
+\bibitem{ferras} M. Ferr\`as, S. Madikeri, P. Motlicek, S. Dey, H. Bourlard, A large-scale open-source acoustic simulator for speaker recognition, IEEE Signal Process. Lett. 23 (2016) 527--531. \href{https://doi.org/10.1109/LSP.2016.2537844}{doi:10.1109/LSP.2016.2537844}.
+\bibitem{sveritas} M. Baali, S. Bisht, F. Teixeira, K. Shapovalova, R. Singh, B. Raj, SVeritas: Benchmark for robust speaker verification under diverse conditions, in: Findings of ACL: EMNLP, 2025, pp. 9714--9731. \href{https://doi.org/10.18653/v1/2025.findings-emnlp.516}{doi:10.18653/v1/2025.findings-emnlp.516}.
+\bibitem{vocalset} J. Wilkins, P. Seetharaman, A. Wahl, B. Pardo, VocalSet: A singing voice dataset, in: ISMIR, 2018. Dataset at \href{https://doi.org/10.5281/zenodo.1193957}{doi:10.5281/zenodo.1193957}.
+\bibitem{gtsinger} Y. Zhang, C. Pan, W. Guo, R. Li, Z. Zhu, J. Wang, W. Xu, J. Lu, Z. Hong, C. Wang, L. Zhang, J. He, Z. Jiang, Y. Chen, C. Yang, J. Zhou, X. Cheng, Z. Zhao, GTSinger: A global multi-technique singing corpus with realistic music scores for all singing tasks, Adv. Neural Inf. Process. Syst. 37 (2024). \href{https://huggingface.co/datasets/GTSinger/GTSinger}{Dataset}.
+\bibitem{jvs} H. Tamaru, S. Takamichi, N. Tanji, H. Saruwatari, JVS-MuSiC: Japanese multispeaker singing-voice corpus, 2020. \href{https://arxiv.org/abs/2001.07044}{arXiv:2001.07044}.
+\bibitem{covox} C. Bruder, P. Larrouy-Maestri, CoVox: A dataset of contrasting vocalizations, Behav. Res. Methods 57 (2025) 142. \href{https://doi.org/10.3758/s13428-025-02664-9}{doi:10.3758/s13428-025-02664-9}.
+\bibitem{nus} Z. Duan, H. Fang, B. Li, K.C. Sim, Y. Wang, The NUS sung and spoken lyrics corpus: A quantitative comparison of singing and speech, in: APSIPA ASC, 2013. \href{https://apsipa.com/proceedings/2013/papers/364_NUS-corpus-Duan-2927261.pdf}{Proceedings paper}.
+\bibitem{encodec} A. D\'efossez, J. Copet, G. Synnaeve, Y. Adi, High fidelity neural audio compression, Trans. Mach. Learn. Res. (2023). \href{https://openreview.net/forum?id=ivCd8z8zR2}{OpenReview}.
+\bibitem{demucs} S. Rouard, F. Massa, A. D\'efossez, Hybrid transformers for music source separation, in: IEEE ICASSP, 2023. \href{https://arxiv.org/abs/2211.08553}{arXiv:2211.08553}.
+\bibitem{traer} J. Traer, J.H. McDermott, Statistics of natural reverberation enable perceptual separation of sound and space, Proc. Natl. Acad. Sci. USA 113 (2016) E7856--E7865. \href{https://doi.org/10.1073/pnas.1612524113}{doi:10.1073/pnas.1612524113}.
+\bibitem{ecapa} B. Desplanques, J. Thienpondt, K. Demuynck, ECAPA-TDNN: Emphasized channel attention, propagation and aggregation in TDNN based speaker verification, in: Interspeech, 2020, pp. 3830--3834. \href{https://doi.org/10.21437/Interspeech.2020-2650}{doi:10.21437/Interspeech.2020-2650}.
+\bibitem{mert} Y. Li, R. Yuan, G. Zhang, Y. Ma, X. Chen, H. Yin, C. Xiao, C. Lin, A. Ragni, E. Benetos, N. Gyenge, R. Dannenberg, R. Liu, W. Chen, G. Xia, Y. Shi, W. Huang, Z. Wang, Y. Guo, J. Fu, MERT: Acoustic music understanding model with large-scale self-supervised training, in: ICLR, 2024. \href{https://arxiv.org/abs/2306.00107}{arXiv:2306.00107}.
+\bibitem{musdb} Z. Rafii, A. Liutkus, F.-R. St\"oter, S.I. Mimilakis, R. Bittner, The MUSDB18 corpus for music separation, dataset, 2017. \href{https://doi.org/10.5281/zenodo.1117372}{doi:10.5281/zenodo.1117372}.
+\bibitem{music4all} I.A.P. Santana, F. Pinhelli, J. Donini, L.G. Catharin, R.B. Mangolin, Y.M.G. da Costa, V.D. Feltrim, M.A. Domingues, Music4All: A new music database and its applications, in: IWSSIP, 2020. \href{https://doi.org/10.1109/IWSSIP48289.2020.9145170}{doi:10.1109/IWSSIP48289.2020.9145170}.
+\bibitem{starz} F. St\"arz, S. Van De Par, S. Ro\ss kopf, L.O.H. Kroczek, A. M\"{u}hlberger, M. Blau, Comparison of binaural auralisations to a real loudspeaker in an audiovisual virtual classroom scenario: Effect of room acoustic simulation, HRTF dataset, and head-mounted display on room acoustic perception, Acta Acust. 9 (2025) 31. \href{https://doi.org/10.1051/aacus/2025012}{doi:10.1051/aacus/2025012}.
+\bibitem{ernoult} A. Ernoult, R. Viala, J. Cabaret, J. Chabassier, T. Colinot, J.-P. Dalmont, J.-B. Doc, V. Fr\'eour, Benchmark study of pipe input impedance simulations and measurements for verification and validation in musical acoustics context, Acta Acust. 10 (2026) 51. \href{https://doi.org/10.1051/aacus/2026048}{doi:10.1051/aacus/2026048}.
+\end{thebibliography}
+
+\end{document}
