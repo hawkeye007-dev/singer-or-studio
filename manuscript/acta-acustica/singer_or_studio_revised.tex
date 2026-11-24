@@ -1,8 +1,9 @@
 % Revised coauthor draft for Acta Acustica (Scientific Article).
-% Build with pdflatex twice or with tectonic. No external figures are required.
+% Build with pdflatex twice or with tectonic. Keep figures/ beside this file.
 % The author team should confirm the corresponding contact and declarations.
 \documentclass[10pt,a4paper]{article}
 \usepackage[margin=20mm]{geometry}
+\usepackage{graphicx}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{microtype}
@@ -163,7 +164,14 @@ Supplement S6 reports mitigation pilots and a Music4All \cite{music4all} artist-
 \subsection{Processing roles in JVS-MuSiC}
 
 
-Table~\ref{tab:jvs-cells} reports all eight synthetic reverb assignments for the headline comparison. Table~\ref{tab:jvs} compares encoders and both query song orientations. For CVSM-ART with a dry common-song query, reverberating only the genuine candidate increases ranking error from 14.73\% to 46.24\%. Processing the query alone gives 14.15\%. The direction gap is 32.09 pp [25.45, 39.10] and remains 28.93 pp [22.47, 35.78] after swapping the song roles. The gap remains positive after the swap for CVSM-A and Torres SSL as well. This contrast reflects the whole ranking context because changing the query also changes its comparison with the impostor.
+Figure~\ref{fig:jvs} shows the headline comparison, and Table~\ref{tab:jvs-cells} reports all eight synthetic reverb assignments. Table~\ref{tab:jvs} compares encoders and both query song orientations. For CVSM-ART with a dry common-song query, reverberating only the genuine candidate increases ranking error from 14.73\% to 46.24\%. Processing the query alone gives 14.15\%. The direction gap is 32.09 pp [25.45, 39.10] and remains 28.93 pp [22.47, 35.78] after swapping the song roles. The gap remains positive after the swap for CVSM-A and Torres SSL as well. This contrast reflects the whole ranking context because changing the query also changes its comparison with the impostor.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.97\textwidth]{figures/jvs-control.pdf}
+\caption{JVS-MuSiC synthetic reverb with CVSM-ART and the common song as query. Panel (a) shows the four processing assignments displayed. From 010 to 011, only the impostor changes. Panel (b) shows pairwise ranking errors and 95\% intervals for each assignment. Panel (c) shows that the genuine cosine stays fixed while the impostor cosine drops. The paired reduction in ranking error is 28.72 percentage points, with a 95\% interval of 22.76 to 35.17.}
+\label{fig:jvs}
+\end{figure*}
 
 \begin{table}[htbp]
 \centering\footnotesize
@@ -211,7 +219,14 @@ For common-song queries, the mean of the four matching contrasts is 14.55 pp [11
 With MP3 at $64\kbs$, common-song genuine-only increases are 7.3, 1.5 and 9.5 pp for CVSM-ART, CVSM-A and Torres SSL. The CVSM-A interval includes zero. Supplement S1 provides the eight cells, weights and counts. The archived factorial output gives the paired intervals for all contrasts.
 
 \subsection{Controlled sweep and transfer to GTSinger}
-Table~\ref{tab:core} compares the same 17 settings across encoders. On GTSinger, the paired excess increase over ECAPA-TDNN is 26.8 pp [23.6, 29.9] for CVSM-ART, 13.1 [10.4, 15.8] for CVSM-A and 40.1 [32.9, 47.7] for Torres SSL. Each increase uses that encoder's own clean baseline. The same model ordering holds when all 19 GTSinger settings receive equal weight. The descriptive increases in table order are 28.0, 15.7, 39.9, 4.0 and 4.7 pp. This sensitivity check includes the two lower EQ gains omitted from the 17-setting list.
+Table~\ref{tab:core} compares the same 17 settings across encoders. Figure~\ref{fig:sweep} shows the GTSinger results at each tested reverb and codec setting. On GTSinger, the paired excess increase over ECAPA-TDNN is 26.8 pp [23.6, 29.9] for CVSM-ART, 13.1 [10.4, 15.8] for CVSM-A and 40.1 [32.9, 47.7] for Torres SSL. Each increase uses that encoder's own clean baseline. The same model ordering holds when all 19 GTSinger settings receive equal weight. The descriptive increases in table order are 28.0, 15.7, 39.9, 4.0 and 4.7 pp. This sensitivity check includes the two lower EQ gains omitted from the 17-setting list.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.97\textwidth]{figures/gtsinger-sweep.pdf}
+\caption{Change in pairwise ranking error relative to each encoder's clean baseline on GTSinger. Only the genuine candidate receives the treatment. Markers show tested settings for synthetic reverberation, EnCodec and MP3. Lines connect the observed settings. Supplement S2 reports the full sweep and the intervals.}
+\label{fig:sweep}
+\end{figure*}
 
 \begin{table*}[t]
 \centering\small
@@ -308,7 +323,7 @@ The \evidencelink{evidence/verify_results.py}{score audit} uses Python 3 to chec
 \noindent\textbf{Funding.} [Author confirmation required.]\par
 \noindent\textbf{Competing interests.} [Author confirmation required.]\par
 \noindent\textbf{Author contributions.} [Complete with the author team.]\par
-\noindent\textbf{Use of AI assistance.} OpenAI Codex (GPT-6.2-Sol) assisted with drafting, LaTeX preparation and checks against saved results. The author team is responsible for verifying the final text, tables and conclusions.
+\noindent\textbf{Use of AI assistance.} OpenAI Codex (GPT-6.2-Sol) assisted with drafting, LaTeX preparation, checks against saved results and Python plotting code. Matplotlib renders the figures from archived experiment results. The author team is responsible for verifying the final text, figures, tables and conclusions.
 
 \begin{thebibliography}{99}
 \small\raggedright

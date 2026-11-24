@@ -39,11 +39,17 @@ The rerun writes fresh outputs only. Compare them to the [claim map](CLAIMS.md) 
 
 ## Build the revised Acta Acustica draft
 
-Compile the self-contained LaTeX source with Tectonic or run `pdflatex` twice from the manuscript directory.
+Compile the LaTeX source with the bundled vector plots. Use Tectonic or run `pdflatex` twice from the manuscript directory.
 
 ```sh
 cd manuscript/acta-acustica
 tectonic singer_or_studio_revised.tex
+```
+
+To regenerate the two data plots with Matplotlib installed, run this command from the repository root.
+
+```sh
+python manuscript/acta-acustica/plot_results.py archive
 ```
 
 ## Regenerate the earlier reading copy
